@@ -2,7 +2,7 @@ package shop.algebras
 
 import shop.domain.Auth.UserId
 import shop.domain.Item.ItemId
-import shop.domain.ShoppingCart.{ Cart, Quantity }
+import shop.domain.ShoppingCart.{ Cart, CartTotal, Quantity }
 
 trait ShoppingCart[F[_]] {
   def add(
@@ -12,7 +12,7 @@ trait ShoppingCart[F[_]] {
   ): F[Unit]
 
   def delete(userId: UserId): F[Unit]
-  def get(userId: UserId): F[Unit]
+  def get(userId: UserId): F[CartTotal]
   def removeItem(userId: UserId, itemId: ItemId): F[Unit]
   def update(userId: UserId, cart: Cart): F[Unit]
 }
