@@ -1,36 +1,43 @@
 package shop.programs
 
-import cats.MonadError
-
-import scala.concurrent.duration._
-import cats.implicits._
+import cats.effect.Timer
+import cats.syntax.all._
 import io.chrisdavenport.log4cats.Logger
-import retry.{ retryingOnAllErrors, RetryDetails, RetryPolicy, Sleep }
 import retry.RetryDetails.{ GivingUp, WillDelayAndRetry }
+import retry.RetryPolicies._
+import retry.{ retryingOnAllErrors, RetryDetails, RetryPolicy }
 import shop.algebras.{ Orders, PaymentClient, ShoppingCart }
 import shop.domain.Auth.UserId
-import shop.domain.Orders.{ OrderError, OrderId, PaymentError, PaymentId }
-import retry.RetryPolicies._
+import shop.domain.Orders._
 import shop.domain.Payment.{ Card, Payment }
-import shop.domain.ShoppingCart.CartItem
+import shop.domain.ShoppingCart.{ CartItem, CartTotal }
 import shop.effects.Background
+import shop.effects.CommonEffects.MonadThrow
 import squants.market.Money
 
-final class CheckoutProgram[F[_]](
+import scala.concurrent.duration._
+
+final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
     paymentClient: PaymentClient[F],
     shoppingCart: ShoppingCart[F],
     orders: Orders[F]
-)(implicit F: MonadError[F, Throwable], l: Logger[F], s: Sleep[F], b: Background[F]) { // cant use context bounding with typeclasses that have multiple type parameters
-  private val retryPolicy: RetryPolicy[F] = limitRetries[F](3) |+| exponentialBackoff[F](10.milliseconds)
+) {
+  private val retryPolicy: RetryPolicy[F] = // move this somewhere it can be used more generally
+    limitRetries[F](3) |+| exponentialBackoff[F](10.milliseconds)
 
   def checkout(userId: UserId, card: Card): F[OrderId] =
-    for {
-      cartTotal <- shoppingCart.get(userId)
-      payment = Payment(userId, cartTotal.total, card)
-      paymentId <- paymentClient.process(payment)
-      orderId <- orders.create(userId, paymentId, cartTotal.items, cartTotal.total)
-      _ <- shoppingCart.delete(userId).attempt.void // attempt returns an Either. void discards it (not great)
-    } yield orderId
+    shoppingCart
+      .get(userId)
+      .ensure(EmptyCartError)(_.items.nonEmpty)
+      .flatMap {
+        case CartTotal(items, total) =>
+          val payment = Payment(userId, total, card)
+          for {
+            paymentId <- paymentClient.process(payment)
+            orderId <- orders.create(userId, paymentId, items, total)
+            _ <- shoppingCart.delete(userId).attempt.void // attempt returns an Either. void discards it (not great)
+          } yield orderId
+      }
 
   def processPayment(payment: Payment): F[PaymentId] = {
     val action: F[PaymentId] = retryingOnAllErrors[PaymentId](
@@ -52,7 +59,7 @@ final class CheckoutProgram[F[_]](
       items: List[CartItem],
       total: Money
   ): F[OrderId] = {
-    val action = retryingOnAllErrors[OrderId](
+    val action: F[OrderId] = retryingOnAllErrors[OrderId](
       policy = retryPolicy,
       onError = logError("Order")
     )(orders.create(userId, paymentId, items, total))
@@ -63,7 +70,8 @@ final class CheckoutProgram[F[_]](
         }
         .onError {
           case _ =>
-            Logger[F].error(s"Failed to create order for: $paymentId") *> Background[F].schedule(bgAction(fa), 1.hour)
+            Logger[F].error(s"Failed to create order for: $paymentId") *>
+                Background[F].schedule(bgAction(fa), 1.hour) // wait an hour and then retry
         }
 
     bgAction(action)
