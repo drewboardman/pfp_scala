@@ -12,6 +12,7 @@ import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.Category.Category
 import shop.domain.Item.Item
 import shop.domain.Orders.PaymentId
+import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal }
 import squants.market._
 
 object Json extends JsonCodecs {
@@ -57,4 +58,13 @@ private[http] trait JsonCodecs {
   implicit val itemDecoder: Decoder[Item] = deriveDecoder[Item]
   implicit val itemEncoder: Encoder[Item] = deriveEncoder[Item]
 
+  implicit val cartItemDecoder: Decoder[CartItem] = deriveDecoder[CartItem]
+  implicit val cartItemEncoder: Encoder[CartItem] = deriveEncoder[CartItem]
+
+  implicit val cartTotalEncoder: Encoder[CartTotal] = deriveEncoder[CartTotal]
+  implicit val cartTotalDecoder: Decoder[CartTotal] = deriveDecoder[CartTotal]
+
+  // gives you both. Look at Codec.AsObject
+  implicit val cartCodec: Codec[Cart] =
+    Codec.forProduct1(nameA0 = "items")(Cart.apply)(_.items)
 }

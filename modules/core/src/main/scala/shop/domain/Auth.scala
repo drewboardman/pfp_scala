@@ -9,6 +9,4 @@ object Auth {
   @newtype case class UserName(value: String)
   @newtype case class Password(value: String)
   @newtype case class JwtToken(value: String)
-
-  case class User(id: UserId, name: UserName)
 }

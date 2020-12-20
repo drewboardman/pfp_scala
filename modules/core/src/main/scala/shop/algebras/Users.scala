@@ -1,6 +1,7 @@
 package shop.algebras
 
-import shop.domain.Auth.{ Password, User, UserId, UserName }
+import shop.domain.Auth.{ Password, UserId, UserName }
+import shop.http.auth.Users.User
 
 trait Users[F[_]] {
   def find(
