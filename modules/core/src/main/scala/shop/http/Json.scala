@@ -11,7 +11,7 @@ import org.http4s.circe.jsonEncoderOf
 import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.Category.Category
 import shop.domain.Item.Item
-import shop.domain.Orders.PaymentId
+import shop.domain.Orders.{ Order, PaymentId }
 import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal }
 import squants.market._
 
@@ -67,4 +67,19 @@ private[http] trait JsonCodecs {
   // gives you both. Look at Codec.AsObject
   implicit val cartCodec: Codec[Cart] =
     Codec.forProduct1(nameA0 = "items")(Cart.apply)(_.items)
+
+  implicit val orderCodec: Codec[Order] =
+    Codec.forProduct4(
+      "id",
+      "pid",
+      "items",
+      "total"
+    )(Order.apply) { out =>
+      (
+        out.id,
+        out.pid,
+        out.items,
+        out.total
+      )
+    }
 }
