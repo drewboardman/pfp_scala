@@ -12,11 +12,9 @@ object Auth {
   @newtype case class UserName(value: String)
   @newtype case class Password(value: String)
 
-  // i think this goes away
-  @newtype case class JwtToken(value: String)
-
   //--------- login errors -------------
   case class InvalidUserOrPassword(username: UserName) extends NoStackTrace
+  case class UserNameInUse(username: UserName) extends NoStackTrace
 
   //--------- registering users -------------
   @newtype case class UserNameParam(value: NonEmptyString) {
@@ -26,6 +24,12 @@ object Auth {
   @newtype case class PasswordParam(value: NonEmptyString) {
     def toPassword: Password = Password(value.value)
   }
+
+  //--------- create a user    --------------
+  case class CreateUser(
+      username: UserNameParam,
+      password: PasswordParam
+  )
 
   //--------- logging in users --------------
   case class LoginUser(

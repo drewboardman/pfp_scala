@@ -1,6 +1,7 @@
 package shop.http
 
 import cats.Applicative
+import dev.profunktor.auth.jwt.JwtToken
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.refined._
@@ -8,7 +9,7 @@ import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
-import shop.domain.Auth.LoginUser
+import shop.domain.Auth.{ CreateUser, LoginUser }
 import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.CardModels._
 import shop.domain.Category.Category
@@ -71,7 +72,12 @@ private[http] trait JsonCodecs {
 
   implicit val cardDecoder: Decoder[Card] = deriveDecoder[Card]
 
-  implicit val loginUserDecoder: Decoder[LoginUser] = deriveDecoder[LoginUser]
+  implicit val loginUserDecoder: Decoder[LoginUser]   = deriveDecoder[LoginUser]
+  implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
+
+  // why are we rolling this ourselves?
+  implicit val tokenEncoder: Encoder[JwtToken] =
+    Encoder.forProduct1("access_token")(_.value)
 
   // gives you both. Look at Codec.AsObject
   implicit val cartCodec: Codec[Cart] =
