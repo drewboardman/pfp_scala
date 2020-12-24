@@ -5,6 +5,8 @@ import java.util.UUID
 import eu.timepit.refined.types.string.NonEmptyString
 import io.estatico.newtype.macros.newtype
 
+import scala.util.control.NoStackTrace
+
 object Brand {
   @newtype case class BrandId(value: UUID)
   @newtype case class BrandName(value: String)
@@ -14,4 +16,6 @@ object Brand {
   @newtype case class BrandParam(value: NonEmptyString) {
     def toBrandName: BrandName = BrandName(value.value.toLowerCase.capitalize)
   }
+
+  case class BrandAlreadyExists(brandName: BrandName) extends NoStackTrace
 }

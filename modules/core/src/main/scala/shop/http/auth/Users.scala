@@ -7,4 +7,5 @@ object Users {
   case class User(userId: UserId, userName: UserName)
 
   @newtype case class CommonUser(user: User)
+  @newtype case class AdminUser(user: User)
 }

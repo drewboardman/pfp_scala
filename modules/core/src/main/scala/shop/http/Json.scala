@@ -12,8 +12,8 @@ import org.http4s.circe.jsonEncoderOf
 import shop.domain.Auth.{ CreateUser, LoginUser }
 import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.CardModels._
-import shop.domain.Category.Category
-import shop.domain.Item.Item
+import shop.domain.Category.{ Category, CategoryParam }
+import shop.domain.Item.{ CreateItemParam, Item, UpdateItemParam }
 import shop.domain.Orders.{ Order, PaymentId }
 import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal }
 
@@ -30,6 +30,9 @@ private[http] trait JsonCodecs {
   // ----- Overriding some Coercible codecs ----
   implicit val brandParamDecoder: Decoder[BrandParam] =
     Decoder.forProduct1("name")(BrandParam.apply)
+
+  implicit val categoryParamDecoder: Decoder[CategoryParam] =
+    Decoder.forProduct1("name")(CategoryParam.apply)
 
   implicit val paymentIdDecoder: Decoder[PaymentId] =
     Decoder.forProduct1("paymentId")(PaymentId.apply)
@@ -71,6 +74,9 @@ private[http] trait JsonCodecs {
   implicit val cartTotalDecoder: Decoder[CartTotal] = deriveDecoder[CartTotal]
 
   implicit val cardDecoder: Decoder[Card] = deriveDecoder[Card]
+
+  implicit val createItemDecoder: Decoder[CreateItemParam] = deriveDecoder[CreateItemParam]
+  implicit val updateItemDecoder: Decoder[UpdateItemParam] = deriveDecoder[UpdateItemParam]
 
   implicit val loginUserDecoder: Decoder[LoginUser]   = deriveDecoder[LoginUser]
   implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
