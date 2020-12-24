@@ -1,22 +1,27 @@
 package shop.http
 
 import cats.Applicative
+import cats.effect.Sync
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.refined._
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
-import org.http4s.EntityEncoder
-import org.http4s.circe.jsonEncoderOf
+import org.http4s.{ EntityDecoder, EntityEncoder }
+import org.http4s.circe.{ jsonEncoderOf, jsonOf }
 import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.Category.Category
 import shop.domain.Item.Item
 import shop.domain.Orders.{ Order, PaymentId }
+import shop.domain.Payment.Card
 import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal }
 import squants.market._
 
 object Json extends JsonCodecs {
   implicit def deriveEntityEncoder[F[_]: Applicative, A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
+
+  implicit def jsonDecoder[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+  implicit def jsonEncoder[F[_]: Sync, A: Encoder]: EntityEncoder[F, A] = jsonEncoderOf[F, A]
 }
 
 private[http] trait JsonCodecs {
@@ -63,6 +68,9 @@ private[http] trait JsonCodecs {
 
   implicit val cartTotalEncoder: Encoder[CartTotal] = deriveEncoder[CartTotal]
   implicit val cartTotalDecoder: Decoder[CartTotal] = deriveDecoder[CartTotal]
+
+  implicit val cardEncoder: Encoder[Card] = deriveEncoder[Card]
+  implicit val cardDecoder: Decoder[Card] = deriveDecoder[Card]
 
   // gives you both. Look at Codec.AsObject
   implicit val cartCodec: Codec[Cart] =
