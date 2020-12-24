@@ -1,6 +1,7 @@
 package shop.domain
 
 import shop.domain.Auth.UserId
+import shop.domain.CardModels.Card
 import squants.market.Money
 
 object Payment {
@@ -8,13 +9,5 @@ object Payment {
       id: UserId,
       total: Money,
       card: Card
-  )
-
-  // These are placeholder types
-  case class Card(
-      name: String,
-      number: Long,
-      expiration: String,
-      cvv: Int
   )
 }

@@ -8,8 +8,9 @@ import retry.RetryPolicies._
 import retry.{ retryingOnAllErrors, RetryDetails, RetryPolicy }
 import shop.algebras.{ Orders, PaymentClient, ShoppingCart }
 import shop.domain.Auth.UserId
+import shop.domain.CardModels.Card
 import shop.domain.Orders._
-import shop.domain.Payment.{ Card, Payment }
+import shop.domain.Payment.Payment
 import shop.domain.ShoppingCart.{ CartItem, CartTotal }
 import shop.effects.Background
 import shop.effects.CommonEffects.MonadThrow

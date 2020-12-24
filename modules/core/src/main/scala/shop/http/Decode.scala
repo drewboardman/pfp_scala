@@ -12,6 +12,8 @@ object Decode {
       request: Request[F]
   ) extends Http4sDsl[F] {
 
+    // This deals with Refined errors on the Card type Validated stuff.
+    // Converts the default response of 422 Unprocessable Entity to Bad Request
     def decodeR[A: Decoder](f: A => F[Response[F]]): F[Response[F]] =
       request
         .asJsonDecode[A]

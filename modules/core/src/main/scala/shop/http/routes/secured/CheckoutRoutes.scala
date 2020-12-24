@@ -6,9 +6,9 @@ import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{ AuthMiddleware, Router }
 import org.http4s.{ AuthedRoutes, HttpRoutes, Response }
+import shop.domain.CardModels._
 import shop.domain.Orders.{ EmptyCartError, OrderError, PaymentError }
 import shop.domain.ShoppingCart.CartNotFound
-import shop.domain.Payment.Card
 import shop.effects.CommonEffects.MonadThrow
 import shop.http.Decode.RequestPimping
 import shop.http.Json._
