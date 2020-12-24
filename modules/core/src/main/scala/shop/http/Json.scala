@@ -8,6 +8,7 @@ import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
+import shop.domain.Auth.LoginUser
 import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.CardModels._
 import shop.domain.Category.Category
@@ -69,6 +70,8 @@ private[http] trait JsonCodecs {
   implicit val cartTotalDecoder: Decoder[CartTotal] = deriveDecoder[CartTotal]
 
   implicit val cardDecoder: Decoder[Card] = deriveDecoder[Card]
+
+  implicit val loginUserDecoder: Decoder[LoginUser] = deriveDecoder[LoginUser]
 
   // gives you both. Look at Codec.AsObject
   implicit val cartCodec: Codec[Cart] =

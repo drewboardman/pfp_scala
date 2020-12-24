@@ -5,6 +5,8 @@ import java.util.UUID
 import eu.timepit.refined.types.string.NonEmptyString
 import io.estatico.newtype.macros.newtype
 
+import scala.util.control.NoStackTrace
+
 object Auth {
   @newtype case class UserId(value: UUID)
   @newtype case class UserName(value: String)
@@ -12,6 +14,9 @@ object Auth {
 
   // i think this goes away
   @newtype case class JwtToken(value: String)
+
+  //--------- login errors -------------
+  case class InvalidUserOrPassword(username: UserName) extends NoStackTrace
 
   //--------- registering users -------------
   @newtype case class UserNameParam(value: NonEmptyString) {
