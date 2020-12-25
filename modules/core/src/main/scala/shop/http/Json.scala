@@ -15,6 +15,7 @@ import shop.domain.CardModels._
 import shop.domain.Category.{ Category, CategoryParam }
 import shop.domain.Item.{ CreateItemParam, Item, UpdateItemParam }
 import shop.domain.Orders.{ Order, PaymentId }
+import shop.domain.Payment.Payment
 import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal }
 
 // this is used for the card types
@@ -38,17 +39,19 @@ private[http] trait JsonCodecs {
     Decoder.forProduct1("paymentId")(PaymentId.apply)
 
   // ----- Coercible codecs -----
+  // These exist because we're using the newtype library
   implicit def coercibleDecoder[A: Coercible[B, *], B: Decoder]: Decoder[A] =
     Decoder[B].map(_.coerce[A])
 
   implicit def coercibleEncoder[A: Coercible[B, *], B: Encoder]: Encoder[A] =
-    Encoder[B].contramap(_.repr.asInstanceOf[B])
+    Encoder[B].contramap(_.repr.asInstanceOf[B]) // this casting is bc the Scala compiler can't infer the type of repr
 
   implicit def coercibleKeyDecoder[A: Coercible[B, *], B: KeyDecoder]: KeyDecoder[A] =
     KeyDecoder[B].map(_.coerce[A])
 
   implicit def coercibleKeyEncoder[A: Coercible[B, *], B: KeyEncoder]: KeyEncoder[A] =
-    KeyEncoder[B].contramap[A](_.repr.asInstanceOf[B])
+    KeyEncoder[B]
+      .contramap[A](_.repr.asInstanceOf[B]) // this casting is bc the Scala compiler can't infer the type of repr
 
   // ----- Domain codecs -----
 
@@ -74,12 +77,15 @@ private[http] trait JsonCodecs {
   implicit val cartTotalDecoder: Decoder[CartTotal] = deriveDecoder[CartTotal]
 
   implicit val cardDecoder: Decoder[Card] = deriveDecoder[Card]
+  implicit val cardEncoder: Encoder[Card] = deriveEncoder[Card]
 
   implicit val createItemDecoder: Decoder[CreateItemParam] = deriveDecoder[CreateItemParam]
   implicit val updateItemDecoder: Decoder[UpdateItemParam] = deriveDecoder[UpdateItemParam]
 
   implicit val loginUserDecoder: Decoder[LoginUser]   = deriveDecoder[LoginUser]
   implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
+
+  implicit val paymentEncoder: Encoder[Payment] = deriveEncoder[Payment]
 
   // why are we rolling this ourselves?
   implicit val tokenEncoder: Encoder[JwtToken] =

@@ -2,8 +2,9 @@ package shop.domain
 
 import eu.timepit.refined._
 import eu.timepit.refined.api._
+import eu.timepit.refined.boolean.And
 import eu.timepit.refined.collection.Size
-import eu.timepit.refined.string.MatchesRegex
+import eu.timepit.refined.string.{ MatchesRegex, ValidInt }
 import io.estatico.newtype.macros.newtype
 
 object CardModels {
@@ -11,7 +12,7 @@ object CardModels {
 
   type CardNamePred       = String Refined MatchesRegex[Rgx]
   type CardNumberPred     = Long Refined Size[16]
-  type CardExpirationPred = Int Refined Size[4] // change this to String with ValidInt
+  type CardExpirationPred = String Refined (Size[4] And ValidInt)
   type CardCCVPred        = Int Refined Size[3]
 
   @newtype case class CardName(value: CardNamePred)

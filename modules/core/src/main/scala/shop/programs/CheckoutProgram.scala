@@ -6,7 +6,7 @@ import io.chrisdavenport.log4cats.Logger
 import retry.RetryDetails.{ GivingUp, WillDelayAndRetry }
 import retry.RetryPolicies._
 import retry.{ retryingOnAllErrors, RetryDetails, RetryPolicy }
-import shop.algebras.{ Orders, PaymentClient, ShoppingCart }
+import shop.algebras.{ Orders, ShoppingCart }
 import shop.domain.Auth.UserId
 import shop.domain.CardModels.Card
 import shop.domain.Orders._
@@ -14,6 +14,7 @@ import shop.domain.Payment.Payment
 import shop.domain.ShoppingCart.{ CartItem, CartTotal }
 import shop.effects.Background
 import shop.effects.CommonEffects.MonadThrow
+import shop.http.clients.PaymentClient
 import squants.market.Money
 
 import scala.concurrent.duration._
