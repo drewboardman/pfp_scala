@@ -20,10 +20,10 @@ trait Brands[F[_]] {
 }
 
 /**
-* The reason this constructor wraps the interpreter in F[_] is because "all
- * creation of mutable state must be suspended in F". The mutable state here
- * is PSQL stuff, but it could be and API call or just a Ref or getting system.time.
- */
+  * The reason this constructor wraps the interpreter in F[_] is because "all
+  * creation of mutable state must be suspended in F". The mutable state here
+  * is PSQL stuff, but it could be and API call or just a Ref or getting system.time.
+  */
 object LiveBrands {
   def make[F[_]: Sync](
       sessionPool: Resource[F, Session[F]]
