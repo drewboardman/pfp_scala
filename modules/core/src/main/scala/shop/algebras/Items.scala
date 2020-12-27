@@ -1,8 +1,11 @@
 package shop.algebras
 
+import cats.effect.{ Resource, Sync }
+import cats.implicits._
 import shop.domain.Brand.{ Brand, BrandId, BrandName }
 import shop.domain.Category.{ Category, CategoryId, CategoryName }
 import shop.domain.Item._
+import shop.effects.GenUUID
 import shop.ext.skunkx.CodecOps
 import skunk._
 import skunk.codec.all._
@@ -15,6 +18,50 @@ trait Items[F[_]] {
   def findById(itemId: ItemId): F[Option[Item]]
   def create(item: CreateItem): F[Unit]
   def update(item: UpdateItem): F[Unit]
+}
+
+object LiveItems {
+  def make[F[_]: Sync](
+      sessionPool: Resource[F, Session[F]]
+  ): F[Items[F]] = Sync[F].delay(
+    new LiveItems[F](sessionPool)
+  )
+}
+
+final class LiveItems[F[_]: Sync] private (
+    sessionPool: Resource[F, Session[F]]
+) extends Items[F] {
+  import ItemQueries._
+
+  // this could be changed to return a stream
+  override def findAll: F[List[Item]] =
+    sessionPool.use(_.execute(selectAll))
+
+  override def findBy(brand: BrandName): F[List[Item]] = sessionPool.use { session =>
+    session.prepare((selectByBrand)).use { prepared =>
+      prepared.stream(args = brand, chunkSize = 1024).compile.toList
+    }
+  }
+
+  override def findById(itemId: ItemId): F[Option[Item]] = sessionPool.use { session =>
+    session.prepare(selectByItemId).use { prepared =>
+      prepared.option(itemId)
+    }
+  }
+
+  override def create(item: CreateItem): F[Unit] = sessionPool.use { session =>
+    session.prepare(insertItem).use { cmd =>
+      GenUUID[F].make[ItemId].flatMap { itemId =>
+        cmd.execute(itemId ~ item).void
+      }
+    }
+  }
+
+  override def update(item: UpdateItem): F[Unit] = sessionPool.use { session =>
+    session.prepare(updateItem).use { cmd =>
+      cmd.execute(item).void
+    }
+  }
 }
 
 private object ItemQueries {
@@ -47,6 +94,15 @@ private object ItemQueries {
       INNER JOIN categories AS c ON c.category_id = c.uuid
       WHERE b.name LIKE ${varchar.cimap[BrandName]}
       """.query(decoder)
+
+  val updateItem: Command[UpdateItem] =
+    sql"""
+         UPDATE items
+         SET price = $numeric
+         WHERE uuid = ${uuid.cimap[ItemId]}
+       """.command.contramap { item =>
+      item.price.amount ~ item.id
+    }
 
   val insertItem: Command[ItemId ~ CreateItem] =
     sql"""
