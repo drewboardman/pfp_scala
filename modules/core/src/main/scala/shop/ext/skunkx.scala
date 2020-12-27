@@ -10,6 +10,16 @@ object skunkx {
 
     /**
       * This is imap for newtypes. Requires instance of Coercible from the newtype to type B.
+      * Here is an example of different ways to construct a Codec:
+      *
+      * val uName: Codec[UserName] = varchar.cimap[UserName]
+      *
+      * val uNameD: Decoder[UserName] = varchar.map(UserName)
+      *
+      * val uNameE: Encoder[UserName] = varchar.contramap(_.value)
+      *
+      * val uNameC: Codec[UserName] = varchar.imap(UserName)(_.value)
+      *
       * @param ev
       * @tparam A
       * @return
