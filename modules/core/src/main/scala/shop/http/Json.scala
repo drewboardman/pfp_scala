@@ -13,6 +13,7 @@ import shop.domain.Auth.{ CreateUser, LoginUser }
 import shop.domain.Brand.{ Brand, BrandParam }
 import shop.domain.CardModels._
 import shop.domain.Category.{ Category, CategoryParam }
+import shop.domain.HealthCheck.AppStatus
 import shop.domain.Item.{ CreateItemParam, Item, UpdateItemParam }
 import shop.domain.Orders.{ Order, PaymentId }
 import shop.domain.Payment.Payment
@@ -85,6 +86,8 @@ private[http] trait JsonCodecs {
   implicit val createUserDecoder: Decoder[CreateUser] = deriveDecoder[CreateUser]
 
   implicit val userCodec: Codec[User] = deriveCodec[User]
+
+  implicit val appStatusCodec: Codec[AppStatus] = deriveCodec[AppStatus]
 
   implicit val paymentEncoder: Encoder[Payment] = deriveEncoder[Payment]
 
