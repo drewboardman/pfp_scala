@@ -73,20 +73,18 @@ final class LiveOrders[F[_]: Sync] private (
 private object OrderQueries {
   val decoder: Decoder[Order] = (
     uuid.cimap[OrderId] ~ uuid ~ uuid.cimap[PaymentId] ~ jsonb[Map[ItemId, Quantity]] ~ numeric.map(USD.apply)
-  ).map {
-    case orderId ~ _ ~ paymentId ~ items ~ total =>
-      Order(orderId, paymentId, items, total)
+  ).map { case orderId ~ _ ~ paymentId ~ items ~ total =>
+    Order(orderId, paymentId, items, total)
   }
 
   // This additional input of userID is why we don't use a Codec
   val encoder: Encoder[UserId ~ Order] =
     (uuid.cimap[OrderId] ~
-        uuid.cimap[UserId] ~
-        uuid.cimap[PaymentId] ~
-        jsonb[Map[ItemId, Quantity]] ~
-        numeric.contramap[Money](_.amount)).contramap {
-      case userId ~ order =>
-        order.id ~ userId ~ order.pid ~ order.items ~ order.total
+      uuid.cimap[UserId] ~
+      uuid.cimap[PaymentId] ~
+      jsonb[Map[ItemId, Quantity]] ~
+      numeric.contramap[Money](_.amount)).contramap { case userId ~ order =>
+      order.id ~ userId ~ order.pid ~ order.items ~ order.total
     }
 
   val insertOrder: Command[UserId ~ Order] =

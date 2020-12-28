@@ -18,7 +18,7 @@ final class OrderRoutes[F[_]: Defer: Monad](
   private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
 
     // get all user orders by userID
-    case GET -> Root as commonUser =>
+    case GET -> Root as commonUser                    =>
       Ok(orders.findBy(commonUser.user.userId))
 
     // get single order by order UUID

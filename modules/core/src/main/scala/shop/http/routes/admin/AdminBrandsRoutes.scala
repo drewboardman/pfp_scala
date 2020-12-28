@@ -19,16 +19,15 @@ final class AdminBrandsRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
 
   private[admin] val prefixPath = "/brands"
 
-  private val httpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of {
-    case authRequest @ POST -> Root as _ =>
-      authRequest.req.decodeR[BrandParam] { brandParam =>
-        brands
-          .create(brandParam.toBrandName)
-          .flatMap(Created(_))
-          .recoverWith {
-            case BrandAlreadyExists(bName) => Conflict(bName.value)
-          }
-      }
+  private val httpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of { case authRequest @ POST -> Root as _ =>
+    authRequest.req.decodeR[BrandParam] { brandParam =>
+      brands
+        .create(brandParam.toBrandName)
+        .flatMap(Created(_))
+        .recoverWith { case BrandAlreadyExists(bName) =>
+          Conflict(bName.value)
+        }
+    }
   }
 
   def routes(authMiddleware: AuthMiddleware[F, AdminUser]): HttpRoutes[F] = Router(

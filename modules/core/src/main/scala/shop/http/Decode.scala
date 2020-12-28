@@ -23,10 +23,10 @@ object Decode {
             Option(err.getCause) match {
               case Some(cause) if cause.getMessage.startsWith("Predicate") =>
                 BadRequest(cause.getMessage)
-              case _ =>
+              case _                                                       =>
                 UnprocessableEntity()
             }
-          case Right(a) => f(a)
+          case Right(a)  => f(a)
         }
   }
 }

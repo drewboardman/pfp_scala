@@ -9,8 +9,7 @@ import skunk._
 import skunk.codec.all._
 import skunk.implicits._
 
-/**
-  * This is an algebra, not a typeclass.
+/** This is an algebra, not a typeclass.
   * Although they look the same, the main difference is that algebras do not need coherence, they
   * can have multiple instances for the same type. This is not checked by the compiler.
   */
@@ -19,8 +18,7 @@ trait Brands[F[_]] {
   def create(name: BrandName): F[Unit]
 }
 
-/**
-  * The reason this constructor wraps the interpreter in F[_] is because "all
+/** The reason this constructor wraps the interpreter in F[_] is because "all
   * creation of mutable state must be suspended in F". The mutable state here
   * is PSQL stuff, but it could be and API call or just a Ref or getting system.time.
   */
@@ -59,12 +57,11 @@ private object BrandQueries {
 //      }(brand => brand.uuid ~ brand.name)
 
   // This is way more straightforward IMO
-  val codec: Codec[Brand] = (uuid ~ varchar).imap {
-    case id ~ name =>
-      Brand(
-        BrandId(id),
-        BrandName(name)
-      )
+  val codec: Codec[Brand] = (uuid ~ varchar).imap { case id ~ name =>
+    Brand(
+      BrandId(id),
+      BrandName(name)
+    )
   }(brand => brand.uuid.value ~ brand.name.value)
 
   val selectAll: Query[Void, Brand] =

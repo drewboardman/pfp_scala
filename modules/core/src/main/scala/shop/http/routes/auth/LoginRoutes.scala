@@ -17,16 +17,15 @@ final class LoginRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
 ) extends Http4sDsl[F] {
   private[routes] val prefixPath = "/auth"
 
-  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case req @ POST -> Root / "login" =>
-      req.decodeR[LoginUser] { user => // this is handling Validation errors
-        authInterpreter
-          .login(user.userName.toUserName, user.password.toPassword)
-          .flatMap(Ok(_))
-          .recoverWith {
-            case InvalidUserOrPassword(_) => Forbidden()
-          }
-      }
+  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "login" =>
+    req.decodeR[LoginUser] { user => // this is handling Validation errors
+      authInterpreter
+        .login(user.userName.toUserName, user.password.toPassword)
+        .flatMap(Ok(_))
+        .recoverWith { case InvalidUserOrPassword(_) =>
+          Forbidden()
+        }
+    }
   }
 
   val routes: HttpRoutes[F] = Router(

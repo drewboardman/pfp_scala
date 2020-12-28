@@ -26,9 +26,8 @@ final class AdminItemsRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
         items
           .create(cItem.toCreateItem)
           .flatMap(Created(_))
-          .recoverWith {
-            case ItemAlreadyExists(itemName, _, _) => // figure out how to use these params in Conflict
-              Conflict(itemName.value)
+          .recoverWith { case ItemAlreadyExists(itemName, _, _) => // figure out how to use these params in Conflict
+            Conflict(itemName.value)
           }
       }
 
@@ -38,9 +37,8 @@ final class AdminItemsRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
         items
           .update(uItem.toUpdateItem)
           .flatMap(Ok(_))
-          .recoverWith {
-            case ItemNotFound(itemId) =>
-              BadRequest(itemId.value)
+          .recoverWith { case ItemNotFound(itemId) =>
+            BadRequest(itemId.value)
           }
       }
   }

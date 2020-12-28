@@ -21,14 +21,14 @@ final class CartRoutes[F[_]: Defer: JsonDecoder: Monad](
   private val httpRoutes: AuthedRoutes[CommonUser, F] =
     AuthedRoutes.of {
       // Get shopping cart
-      case GET -> Root as commonUser =>
+      case GET -> Root as commonUser                    =>
         Ok(shoppingCart.get(commonUser.user.userId))
 
       // Add items to shopping cart
-      case authedReq @ POST -> Root as commonUser =>
+      case authedReq @ POST -> Root as commonUser       =>
         authedReq.req.asJsonDecode[Cart].flatMap { cart =>
           cart.items // cart.items: Map[ItemId, Quantity]
-          .toList
+            .toList
             .traverse_ { // I have no idea why this is indenting but it's dumb
               case (itemId, quantity) =>
                 shoppingCart.add(commonUser.user.userId, itemId, quantity)
@@ -37,7 +37,7 @@ final class CartRoutes[F[_]: Defer: JsonDecoder: Monad](
         }
 
       // Modify the cart
-      case authedReq @ PUT -> Root as commonUser =>
+      case authedReq @ PUT -> Root as commonUser        =>
         authedReq.req.asJsonDecode[Cart].flatMap { cart =>
           shoppingCart.update(commonUser.user.userId, cart) *>
             Ok()
@@ -46,7 +46,7 @@ final class CartRoutes[F[_]: Defer: JsonDecoder: Monad](
       // Remove items from cart
       case DELETE -> Root / UUIDVar(uuid) as commonUser =>
         shoppingCart.removeItem(commonUser.user.userId, ItemId(uuid)) *>
-            NoContent()
+          NoContent()
     }
 
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] =

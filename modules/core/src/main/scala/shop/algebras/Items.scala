@@ -38,7 +38,7 @@ final class LiveItems[F[_]: Sync] private (
     sessionPool.use(_.execute(selectAll))
 
   override def findBy(brand: BrandName): F[List[Item]] = sessionPool.use { session =>
-    session.prepare((selectByBrand)).use { prepared =>
+    session.prepare(selectByBrand).use { prepared =>
       prepared.stream(args = brand, chunkSize = 1024).compile.toList
     }
   }
@@ -108,14 +108,13 @@ private object ItemQueries {
     sql"""
          INSERT INTO items
          VALUES ($uuid, $varchar, $varchar, $numeric, $uuid, $uuid)
-       """.command.contramap {
-      case itemId ~ item =>
-        itemId.value ~
-            item.name.value ~
-            item.description.value ~
-            item.price.amount ~
-            item.brandId.value ~
-            item.categoryId.value
+       """.command.contramap { case itemId ~ item =>
+      itemId.value ~
+        item.name.value ~
+        item.description.value ~
+        item.price.amount ~
+        item.brandId.value ~
+        item.categoryId.value
     }
 
   val selectByItemId: Query[ItemId, Item] =

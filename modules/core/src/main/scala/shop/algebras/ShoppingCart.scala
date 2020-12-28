@@ -46,23 +46,23 @@ final class LiveShoppingCart[F[_]: GenUUID: MonadThrow] private (
       itemId.value.toString,
       quantity.value.toString
     ) *>
-        redis.expire(
-          userId.value.toString,
-          exp.value
-        )
+      redis.expire(
+        userId.value.toString,
+        exp.value
+      )
 
   override def get(userId: UserId): F[CartTotal] = {
     val itemsResult: F[List[CartItem]] = redis.hGetAll(userId.value.toString).flatMap { it =>
-      it.toList.traverseFilter {
+      it.toList.traverseFilter { // get all of the items in a shopping cart
         case (k, v) =>
           for {
-            itemId <- GenUUID[F].read[ItemId](k)
+            itemId <- GenUUID[F].read[ItemId](k) // convert them into itemUuid and Quantity
             quant <- ApThrow[F].catchNonFatal(Quantity(v.toInt))
             res <- items
-                    .findById(itemId)
-                    .map { iList =>
-                      iList.map(itm => CartItem(itm, quant))
-                    }
+                     .findById(itemId) // fetch that item from the real psql item table
+                     .map { iList =>
+                       iList.map(itm => CartItem(itm, quant)) // iff it exists, return it with the quantity
+                     }
           } yield res
       }
     }
@@ -77,13 +77,12 @@ final class LiveShoppingCart[F[_]: GenUUID: MonadThrow] private (
 
   override def update(userId: UserId, cart: Cart): F[Unit] =
     redis.hGetAll(userId.value.toString).flatMap { itemMap =>
-      itemMap.toList.traverse_ {
-        case (itemIdKey, _) =>
-          GenUUID[F].read[ItemId](itemIdKey).flatMap { itemId =>
-            cart.items.get(itemId).traverse_ { quant =>
-              redis.hSet(userId.value.toString, itemIdKey, quant.value.toString)
-            }
+      itemMap.toList.traverse_ { case (itemIdKey, _) =>
+        GenUUID[F].read[ItemId](itemIdKey).flatMap { itemId =>
+          cart.items.get(itemId).traverse_ { quant =>
+            redis.hSet(userId.value.toString, itemIdKey, quant.value.toString)
           }
+        }
       } *> redis.expire(userId.value.toString, exp.value)
     }
 

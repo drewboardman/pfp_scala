@@ -8,8 +8,7 @@ import io.estatico.newtype.Coercible
 import io.estatico.newtype.ops._
 import shop.effects.CommonEffects.ApThrow
 
-/**
-  * This is a typeclass that will generate UUIDs. We use it to create
+/** This is a typeclass that will generate UUIDs. We use it to create
   * primary keys for the psql table elements.
   * @tparam F
   */

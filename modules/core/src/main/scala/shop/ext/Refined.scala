@@ -6,8 +6,8 @@ import eu.timepit.refined.collection.Size
 
 object Refined {
 
-  implicit def validateSizeN[N <: Int, R](
-      implicit w: ValueOf[N]
+  implicit def validateSizeN[N <: Int, R](implicit
+      w: ValueOf[N]
   ): Validate.Plain[R, Size[N]] =
     Validate.fromPredicate[R, Size[N]](
       _.toString.size == w.value,

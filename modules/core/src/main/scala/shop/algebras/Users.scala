@@ -43,7 +43,7 @@ final class LiveUsers[F[_]: Sync] private (
         qry.option(username).map {
           case Some(user ~ encryptedFromDB) if encryptedFromDB.value == crypto.encrypt(password).value =>
             user.some
-          case _ =>
+          case _                                                                                       =>
             none[User]
         }
       }
@@ -55,9 +55,8 @@ final class LiveUsers[F[_]: Sync] private (
         cmd
           .execute(User(userId, username) ~ crypto.encrypt(password))
           .as(userId)
-          .handleErrorWith {
-            case SqlState.UniqueViolation(_) =>
-              UserNameInUse(username).raiseError[F, UserId]
+          .handleErrorWith { case SqlState.UniqueViolation(_) =>
+            UserNameInUse(username).raiseError[F, UserId]
           }
       }
     }
@@ -67,11 +66,11 @@ final class LiveUsers[F[_]: Sync] private (
 private object UserQueries {
   val codec: Codec[User ~ EncryptedPassword] =
     (uuid.cimap[UserId] ~
-        varchar.cimap[UserName] ~
-        varchar.cimap[EncryptedPassword]).imap {
-      case userId ~ username ~ pass => User(userId, username) ~ pass
-    } {
-      case user ~ pass => user.userId ~ user.userName ~ pass
+      varchar.cimap[UserName] ~
+      varchar.cimap[EncryptedPassword]).imap { case userId ~ username ~ pass =>
+      User(userId, username) ~ pass
+    } { case user ~ pass =>
+      user.userId ~ user.userName ~ pass
     }
 
   val selectUser: Query[UserName, User ~ EncryptedPassword] =

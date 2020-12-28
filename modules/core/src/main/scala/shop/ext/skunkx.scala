@@ -8,8 +8,7 @@ object skunkx {
 
   implicit class CodecOps[B](codec: Codec[B]) {
 
-    /**
-      * This is imap for newtypes. Requires instance of Coercible from the newtype to type B.
+    /** This is imap for newtypes. Requires instance of Coercible from the newtype to type B.
       * Here is an example of different ways to construct a Codec:
       *
       * val uName: Codec[UserName] = varchar.cimap[UserName]
