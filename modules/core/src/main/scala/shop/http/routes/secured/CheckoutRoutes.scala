@@ -26,9 +26,10 @@ final class CheckoutRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
       authReq.req.decodeR[Card](handleCard(commonUser, _))
   }
 
-  def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(
-    prefixPath -> authMiddleware(httpRoutes)
-  )
+  def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] =
+    Router(
+      prefixPath -> authMiddleware(httpRoutes)
+    )
 
   private def handleCard(commonUser: CommonUser, card: Card): F[Response[F]] =
     checkoutProgram

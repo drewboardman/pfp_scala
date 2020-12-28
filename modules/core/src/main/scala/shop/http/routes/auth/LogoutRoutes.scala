@@ -20,13 +20,13 @@ final class LogoutRoutes[F[_]: Defer: Monad](
       case authReq @ POST -> Root / "logout" as commonUser =>
         AuthHeaders
           .getBearerToken(authReq.req)
-          .traverse_ {
-            jwt =>
-              authInterpreter.logout(jwt, commonUser.user.userName)
+          .traverse_ { jwt =>
+            authInterpreter.logout(jwt, commonUser.user.userName)
           } *> NoContent()
     }
 
-  def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(
-    prefixPath -> authMiddleware(httpRoutes)
-  )
+  def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] =
+    Router(
+      prefixPath -> authMiddleware(httpRoutes)
+    )
 }

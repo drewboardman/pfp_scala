@@ -26,15 +26,13 @@ final class LivePaymentClient[F[_]: JsonDecoder: BracketThrow](
     Uri
       .fromString(baseUri + "/payments")
       .liftTo[F]
-      .flatMap {
-        uri =>
-          POST(payment, uri)
-            .flatMap {
-              req =>
-                client
-                  .run(req)
-                  .use(handlePaymentApiResponse)
-            }
+      .flatMap { uri =>
+        POST(payment, uri)
+          .flatMap { req =>
+            client
+              .run(req)
+              .use(handlePaymentApiResponse)
+          }
       }
 
   private def handlePaymentApiResponse(response: Response[F]): F[PaymentId] =

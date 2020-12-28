@@ -26,9 +26,10 @@ object LiveUsers {
   def make[F[_]: Sync](
       sessionPool: Resource[F, Session[F]],
       crypto: Crypto
-  ): F[LiveUsers[F]] = Sync[F].delay(
-    new LiveUsers[F](sessionPool, crypto)
-  )
+  ): F[LiveUsers[F]] =
+    Sync[F].delay(
+      new LiveUsers[F](sessionPool, crypto)
+    )
 }
 
 final class LiveUsers[F[_]: Sync] private (
@@ -39,30 +40,29 @@ final class LiveUsers[F[_]: Sync] private (
 
   override def find(username: UserName, password: Password): F[Option[User]] =
     sessionPool.use { sn =>
-        sn.prepare(selectUser).use { qry =>
-            qry.option(username).map {
-              case Some(user ~ encryptedFromDB)
-                if encryptedFromDB.value == crypto.encrypt(password).value =>
-                user.some
-              case _                                                                                       =>
-                none[User]
-            }
+      sn.prepare(selectUser).use { qry =>
+        qry.option(username).map {
+          case Some(user ~ encryptedFromDB) if encryptedFromDB.value == crypto.encrypt(password).value =>
+            user.some
+          case _                                                                                       =>
+            none[User]
         }
+      }
     }
 
   override def create(username: UserName, password: Password): F[UserId] =
     sessionPool.use { sn =>
-        sn.prepare(insertUser).use { cmd =>
-            GenUUID[F].make[UserId].flatMap { userId =>
-                cmd
-                  .execute(User(userId, username) ~ crypto.encrypt(password))
-                  .as(userId)
-                  .handleErrorWith {
-                    case SqlState.UniqueViolation(_) =>
-                      UserNameInUse(username).raiseError[F, UserId]
-                  }
+      sn.prepare(insertUser).use { cmd =>
+        GenUUID[F].make[UserId].flatMap { userId =>
+          cmd
+            .execute(User(userId, username) ~ crypto.encrypt(password))
+            .as(userId)
+            .handleErrorWith {
+              case SqlState.UniqueViolation(_) =>
+                UserNameInUse(username).raiseError[F, UserId]
             }
         }
+      }
     }
 }
 

@@ -17,9 +17,10 @@ trait Categories[F[_]] {
 object LiveCategories {
   def make[F[_]: Sync](
       sessionPool: Resource[F, Session[F]]
-  ): F[Categories[F]] = Sync[F].delay(
-    new LiveCategories[F](sessionPool)
-  )
+  ): F[Categories[F]] =
+    Sync[F].delay(
+      new LiveCategories[F](sessionPool)
+    )
 }
 
 final class LiveCategories[F[_]: BracketThrow: GenUUID] private (
@@ -27,20 +28,16 @@ final class LiveCategories[F[_]: BracketThrow: GenUUID] private (
 ) extends Categories[F] {
   import CategoryQueries._
 
-  override def findAll: F[List[Category]] =
-    sessionPool.use(_.execute(selectAll))
+  override def findAll: F[List[Category]] = sessionPool.use(_.execute(selectAll))
 
   override def create(name: CategoryName): F[Unit] =
     sessionPool
-      .use {
-        session =>
-          session.prepare(insertCategory).use {
-            cmd =>
-              GenUUID[F].make[CategoryId].flatMap {
-                uuid =>
-                  cmd.execute(Category(uuid, name)).void
-              }
+      .use { session =>
+        session.prepare(insertCategory).use { cmd =>
+          GenUUID[F].make[CategoryId].flatMap { uuid =>
+            cmd.execute(Category(uuid, name)).void
           }
+        }
       }
 }
 

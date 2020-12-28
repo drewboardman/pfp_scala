@@ -9,7 +9,7 @@ import io.circe.syntax._
 import io.circe.parser.decode
 import pdi.jwt.JwtClaim
 import shop.config.Data.TokenExpiration
-import shop.domain.Auth.{ Password, UserName, UserNameInUse }
+import shop.domain.Auth.{ InvalidUserOrPassword, Password, UserName, UserNameInUse }
 import shop.effects.CommonEffects.MonadThrow
 import shop.effects.GenUUID
 import shop.http.Json._
@@ -52,11 +52,30 @@ final class LiveAuth[F[_]: GenUUID: MonadThrow] private (
         for {
           userId <- users.create(username, password)
           token <- tokens.create
-          usr = User(userId, usr).asJson.noSpaces // no fallback if this fails
+          usr = User(userId, username).asJson.noSpaces // no fallback if this fails
           _ <- redis.setEx(token.value, usr, tokenExpiration.value)
           _ <- redis.setEx(username.value, token.value, tokenExpiration.value) // why do I need this one?
         } yield token
     }
+
+  override def login(username: UserName, password: Password): F[JwtToken] =
+    users.find(username, password).flatMap {
+      case None       =>
+        InvalidUserOrPassword(username).raiseError[F, JwtToken]
+      case Some(user) =>
+        redis.get(username.value).flatMap {
+          case Some(tokenString) =>
+            JwtToken(tokenString).pure[F]
+          case None              =>
+            tokens.create.flatTap { tkn => // side effect and return the token.create value
+              redis.setEx(tkn.value, user.asJson.noSpaces, tokenExpiration.value) *>
+                redis.setEx(username.value, tkn.value, tokenExpiration.value)
+            }
+        }
+    }
+
+  override def logout(token: JwtToken, userName: UserName): F[Unit] =
+    redis.del(token.value) *> redis.del(userName.value)
 }
 
 trait UsersAuth[F[_], A] {
@@ -66,16 +85,14 @@ trait UsersAuth[F[_], A] {
 object LiveUsersAuth {
   def make[F[_]: Sync](
       redis: RedisCommands[F, String, String]
-  ): F[LiveUsersAuth[F]] =
-    Sync[F].delay(new LiveUsersAuth[F](redis))
+  ): F[LiveUsersAuth[F]] = Sync[F].delay(new LiveUsersAuth[F](redis))
 }
 
 object LiveAdminAuth {
   def make[F[_]: Sync](
       adminToken: JwtToken,
       adminUser: AdminUser
-  ): F[LiveAdminAuth[F]] =
-    Sync[F].delay(new LiveAdminAuth[F](adminToken, adminUser))
+  ): F[LiveAdminAuth[F]] = Sync[F].delay(new LiveAdminAuth[F](adminToken, adminUser))
 }
 
 final class LiveUsersAuth[F[_]: Functor] private (
@@ -85,10 +102,10 @@ final class LiveUsersAuth[F[_]: Functor] private (
     redis
       .get(token.value)
       .map { maybeUser =>
-          for {
-            rawUserString <- maybeUser
-            user <- decode[User](rawUserString).toOption
-          } yield CommonUser(user)
+        for {
+          rawUserString <- maybeUser
+          user <- decode[User](rawUserString).toOption
+        } yield CommonUser(user)
       }
 }
 

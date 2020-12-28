@@ -80,12 +80,13 @@ final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
   }
 
   // this satisfies the retryingOnAllErrors argument of (E, RetryDetails) => M[Unit]
-  def logError(thingThatFailed: String)(e: Throwable, details: RetryDetails): F[Unit] = details match {
-    case r: WillDelayAndRetry =>
-      Logger[F].error(s"Failed on $thingThatFailed with ${e.getMessage}. We retried ${r.retriesSoFar} times.")
-    case g: GivingUp          =>
-      Logger[F].error(
-        s"Giving up on $thingThatFailed with ${e.getMessage}. We retried a total of ${g.totalRetries} times."
-      )
-  }
+  def logError(thingThatFailed: String)(e: Throwable, details: RetryDetails): F[Unit] =
+    details match {
+      case r: WillDelayAndRetry =>
+        Logger[F].error(s"Failed on $thingThatFailed with ${e.getMessage}. We retried ${r.retriesSoFar} times.")
+      case g: GivingUp          =>
+        Logger[F].error(
+          s"Giving up on $thingThatFailed with ${e.getMessage}. We retried a total of ${g.totalRetries} times."
+        )
+    }
 }

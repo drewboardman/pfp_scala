@@ -23,8 +23,7 @@ object skunkx {
       * @tparam A
       * @return
       */
-    def cimap[A: Coercible[B, *]](implicit ev: Coercible[A, B]): Codec[A] =
-      codec.imap(_.coerce[A])((ev(_)))
+    def cimap[A: Coercible[B, *]](implicit ev: Coercible[A, B]): Codec[A] = codec.imap(_.coerce[A])((ev(_)))
   }
 
 }

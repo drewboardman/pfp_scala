@@ -26,23 +26,21 @@ final class CartRoutes[F[_]: Defer: JsonDecoder: Monad](
 
       // Add items to shopping cart
       case authedReq @ POST -> Root as commonUser       =>
-        authedReq.req.asJsonDecode[Cart].flatMap {
-          cart =>
-            cart.items // cart.items: Map[ItemId, Quantity]
-              .toList
-              .traverse_ { // I have no idea why this is indenting but it's dumb
-                case (itemId, quantity) =>
-                  shoppingCart.add(commonUser.user.userId, itemId, quantity)
-              } *>
-              Created()
+        authedReq.req.asJsonDecode[Cart].flatMap { cart =>
+          cart.items // cart.items: Map[ItemId, Quantity]
+            .toList
+            .traverse_ { // I have no idea why this is indenting but it's dumb
+              case (itemId, quantity) =>
+                shoppingCart.add(commonUser.user.userId, itemId, quantity)
+            } *>
+            Created()
         }
 
       // Modify the cart
       case authedReq @ PUT -> Root as commonUser        =>
-        authedReq.req.asJsonDecode[Cart].flatMap {
-          cart =>
-            shoppingCart.update(commonUser.user.userId, cart) *>
-              Ok()
+        authedReq.req.asJsonDecode[Cart].flatMap { cart =>
+          shoppingCart.update(commonUser.user.userId, cart) *>
+            Ok()
         }
 
       // Remove items from cart

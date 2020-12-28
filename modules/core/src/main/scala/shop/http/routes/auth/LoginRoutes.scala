@@ -19,15 +19,14 @@ final class LoginRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
     case req @ POST -> Root / "login" =>
-      req.decodeR[LoginUser] {
-        user => // this is handling Validation errors
-          authInterpreter
-            .login(user.userName.toUserName, user.password.toPassword)
-            .flatMap(Ok(_))
-            .recoverWith {
-              case InvalidUserOrPassword(_) =>
-                Forbidden()
-            }
+      req.decodeR[LoginUser] { user => // this is handling Validation errors
+        authInterpreter
+          .login(user.userName.toUserName, user.password.toPassword)
+          .flatMap(Ok(_))
+          .recoverWith {
+            case InvalidUserOrPassword(_) =>
+              Forbidden()
+          }
       }
   }
 

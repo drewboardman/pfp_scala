@@ -8,6 +8,5 @@ import dev.profunktor.redis4cats.log4cats._
 object AppResources {
   def mkRedisResource[F[_]: ConcurrentEffect: ContextShift: Logger](
       uri: String
-  ): Resource[F, RedisCommands[F, String, String]] =
-    Redis[F].utf8(uri)
+  ): Resource[F, RedisCommands[F, String, String]] = Redis[F].utf8(uri)
 }

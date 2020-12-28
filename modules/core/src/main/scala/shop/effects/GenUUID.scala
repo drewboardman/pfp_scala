@@ -23,13 +23,10 @@ object GenUUID {
 
   implicit def syncGenUUID[F[_]: Sync]: GenUUID[F] =
     new GenUUID[F] {
-      def make: F[UUID] =
-        Sync[F].delay(UUID.randomUUID())
+      def make: F[UUID] = Sync[F].delay(UUID.randomUUID())
 
-      def make[A: Coercible[UUID, *]]: F[A] =
-        make.map(_.coerce[A])
+      def make[A: Coercible[UUID, *]]: F[A] = make.map(_.coerce[A])
 
-      def read[A: Coercible[UUID, *]](str: String): F[A] =
-        ApThrow[F].catchNonFatal(UUID.fromString(str).coerce[A])
+      def read[A: Coercible[UUID, *]](str: String): F[A] = ApThrow[F].catchNonFatal(UUID.fromString(str).coerce[A])
     }
 }

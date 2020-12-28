@@ -13,6 +13,5 @@ object Params {
 
   implicit def refinedQueryParamDecoder[T: QueryParamDecoder, P](implicit
       ev: Validate[T, P]
-  ): QueryParamDecoder[T Refined P] =
-    QueryParamDecoder[T].emap(refineV[P](_).leftMap(m => ParseFailure(m, m)))
+  ): QueryParamDecoder[T Refined P] = QueryParamDecoder[T].emap(refineV[P](_).leftMap(m => ParseFailure(m, m)))
 }

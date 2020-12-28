@@ -41,14 +41,12 @@ private[http] trait JsonCodecs {
 
   // ----- Coercible codecs -----
   // These exist because we're using the newtype library
-  implicit def coercibleDecoder[A: Coercible[B, *], B: Decoder]: Decoder[A] =
-    Decoder[B].map(_.coerce[A])
+  implicit def coercibleDecoder[A: Coercible[B, *], B: Decoder]: Decoder[A] = Decoder[B].map(_.coerce[A])
 
   implicit def coercibleEncoder[A: Coercible[B, *], B: Encoder]: Encoder[A] =
     Encoder[B].contramap(_.repr.asInstanceOf[B]) // this casting is bc the Scala compiler can't infer the type of repr
 
-  implicit def coercibleKeyDecoder[A: Coercible[B, *], B: KeyDecoder]: KeyDecoder[A] =
-    KeyDecoder[B].map(_.coerce[A])
+  implicit def coercibleKeyDecoder[A: Coercible[B, *], B: KeyDecoder]: KeyDecoder[A] = KeyDecoder[B].map(_.coerce[A])
 
   implicit def coercibleKeyEncoder[A: Coercible[B, *], B: KeyEncoder]: KeyEncoder[A] =
     KeyEncoder[B]
@@ -104,13 +102,12 @@ private[http] trait JsonCodecs {
       "pid",
       "items",
       "total"
-    )(Order.apply) {
-      out =>
-        (
-          out.id,
-          out.pid,
-          out.items,
-          out.total
-        )
+    )(Order.apply) { out =>
+      (
+        out.id,
+        out.pid,
+        out.items,
+        out.total
+      )
     }
 }

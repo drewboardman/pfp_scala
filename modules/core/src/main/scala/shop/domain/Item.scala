@@ -39,13 +39,14 @@ object Item {
       brandId: BrandId,
       categoryId: CategoryId
   ) {
-    def toCreateItem: CreateItem = CreateItem(
-      name = ItemName(name.value.value),
-      description = ItemDescription(description.value.value),
-      price = USD(BigDecimal(price.value.value)),
-      brandId = brandId,
-      categoryId = categoryId
-    )
+    def toCreateItem: CreateItem =
+      CreateItem(
+        name = ItemName(name.value.value),
+        description = ItemDescription(description.value.value),
+        price = USD(BigDecimal(price.value.value)),
+        brandId = brandId,
+        categoryId = categoryId
+      )
   }
 
   case class ItemAlreadyExists(
@@ -74,10 +75,11 @@ object Item {
       id: ItemIdParam,
       price: PriceParam
   ) {
-    def toUpdateItem: UpdateItem = UpdateItem(
-      id = ItemId(UUID.fromString(id.value.value)),
-      price = USD(BigDecimal(price.value.value))
-    )
+    def toUpdateItem: UpdateItem =
+      UpdateItem(
+        id = ItemId(UUID.fromString(id.value.value)),
+        price = USD(BigDecimal(price.value.value))
+      )
   }
 
   case class ItemNotFound(itemId: ItemId) extends NoStackTrace
