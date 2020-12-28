@@ -104,12 +104,13 @@ private[http] trait JsonCodecs {
       "pid",
       "items",
       "total"
-    )(Order.apply) { out =>
-      (
-        out.id,
-        out.pid,
-        out.items,
-        out.total
-      )
+    )(Order.apply) {
+      out =>
+        (
+          out.id,
+          out.pid,
+          out.items,
+          out.total
+        )
     }
 }

@@ -37,30 +37,39 @@ final class LiveItems[F[_]: Sync] private (
   override def findAll: F[List[Item]] =
     sessionPool.use(_.execute(selectAll))
 
-  override def findBy(brand: BrandName): F[List[Item]] = sessionPool.use { session =>
-    session.prepare(selectByBrand).use { prepared =>
-      prepared.stream(args = brand, chunkSize = 1024).compile.toList
-    }
-  }
-
-  override def findById(itemId: ItemId): F[Option[Item]] = sessionPool.use { session =>
-    session.prepare(selectByItemId).use { prepared =>
-      prepared.option(itemId)
-    }
-  }
-
-  override def create(item: CreateItem): F[Unit] = sessionPool.use { session =>
-    session.prepare(insertItem).use { cmd =>
-      GenUUID[F].make[ItemId].flatMap { itemId =>
-        cmd.execute(itemId ~ item).void
+  override def findBy(brand: BrandName): F[List[Item]] = sessionPool.use {
+    session =>
+      session.prepare(selectByBrand).use {
+        prepared =>
+          prepared.stream(args = brand, chunkSize = 1024).compile.toList
       }
-    }
   }
 
-  override def update(item: UpdateItem): F[Unit] = sessionPool.use { session =>
-    session.prepare(updateItem).use { cmd =>
-      cmd.execute(item).void
-    }
+  override def findById(itemId: ItemId): F[Option[Item]] = sessionPool.use {
+    session =>
+      session.prepare(selectByItemId).use {
+        prepared =>
+          prepared.option(itemId)
+      }
+  }
+
+  override def create(item: CreateItem): F[Unit] = sessionPool.use {
+    session =>
+      session.prepare(insertItem).use {
+        cmd =>
+          GenUUID[F].make[ItemId].flatMap {
+            itemId =>
+              cmd.execute(itemId ~ item).void
+          }
+      }
+  }
+
+  override def update(item: UpdateItem): F[Unit] = sessionPool.use {
+    session =>
+      session.prepare(updateItem).use {
+        cmd =>
+          cmd.execute(item).void
+      }
   }
 }
 
@@ -100,21 +109,23 @@ private object ItemQueries {
          UPDATE items
          SET price = $numeric
          WHERE uuid = ${uuid.cimap[ItemId]}
-       """.command.contramap { item =>
-      item.price.amount ~ item.id
+       """.command.contramap {
+      item =>
+        item.price.amount ~ item.id
     }
 
   val insertItem: Command[ItemId ~ CreateItem] =
     sql"""
          INSERT INTO items
          VALUES ($uuid, $varchar, $varchar, $numeric, $uuid, $uuid)
-       """.command.contramap { case itemId ~ item =>
-      itemId.value ~
-        item.name.value ~
-        item.description.value ~
-        item.price.amount ~
-        item.brandId.value ~
-        item.categoryId.value
+       """.command.contramap {
+      case itemId ~ item =>
+        itemId.value ~
+          item.name.value ~
+          item.description.value ~
+          item.price.amount ~
+          item.brandId.value ~
+          item.categoryId.value
     }
 
   val selectByItemId: Query[ItemId, Item] =

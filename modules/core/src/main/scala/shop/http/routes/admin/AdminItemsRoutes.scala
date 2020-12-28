@@ -22,24 +22,28 @@ final class AdminItemsRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
   private val httpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of {
     // create item
     case authReq @ POST -> Root as _ =>
-      authReq.req.decodeR[CreateItemParam] { cItem =>
-        items
-          .create(cItem.toCreateItem)
-          .flatMap(Created(_))
-          .recoverWith { case ItemAlreadyExists(itemName, _, _) => // figure out how to use these params in Conflict
-            Conflict(itemName.value)
-          }
+      authReq.req.decodeR[CreateItemParam] {
+        cItem =>
+          items
+            .create(cItem.toCreateItem)
+            .flatMap(Created(_))
+            .recoverWith {
+              case ItemAlreadyExists(itemName, _, _) => // figure out how to use these params in Conflict
+                Conflict(itemName.value)
+            }
       }
 
     // update item
     case authReq @ POST -> Root as _ =>
-      authReq.req.decodeR[UpdateItemParam] { uItem =>
-        items
-          .update(uItem.toUpdateItem)
-          .flatMap(Ok(_))
-          .recoverWith { case ItemNotFound(itemId) =>
-            BadRequest(itemId.value)
-          }
+      authReq.req.decodeR[UpdateItemParam] {
+        uItem =>
+          items
+            .update(uItem.toUpdateItem)
+            .flatMap(Ok(_))
+            .recoverWith {
+              case ItemNotFound(itemId) =>
+                BadRequest(itemId.value)
+            }
       }
   }
 

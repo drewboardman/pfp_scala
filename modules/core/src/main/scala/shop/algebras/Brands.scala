@@ -39,12 +39,15 @@ final class LiveBrands[F[_]: BracketThrow: GenUUID] private (
     sessionPool.use(_.execute(selectAll))
 
   override def create(brandName: BrandName): F[Unit] =
-    sessionPool.use { session =>
-      session.prepare(insertBrand).use { command =>
-        GenUUID[F].make[BrandId].flatMap { brandId =>
-          command.execute(Brand(brandId, brandName)).void
+    sessionPool.use {
+      session =>
+        session.prepare(insertBrand).use {
+          command =>
+            GenUUID[F].make[BrandId].flatMap {
+              brandId =>
+                command.execute(Brand(brandId, brandName)).void
+            }
         }
-      }
     }
 }
 
@@ -57,11 +60,12 @@ private object BrandQueries {
 //      }(brand => brand.uuid ~ brand.name)
 
   // This is way more straightforward IMO
-  val codec: Codec[Brand] = (uuid ~ varchar).imap { case id ~ name =>
-    Brand(
-      BrandId(id),
-      BrandName(name)
-    )
+  val codec: Codec[Brand] = (uuid ~ varchar).imap {
+    case id ~ name =>
+      Brand(
+        BrandId(id),
+        BrandName(name)
+      )
   }(brand => brand.uuid.value ~ brand.name.value)
 
   val selectAll: Query[Void, Brand] =

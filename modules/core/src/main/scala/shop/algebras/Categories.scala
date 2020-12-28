@@ -32,22 +32,26 @@ final class LiveCategories[F[_]: BracketThrow: GenUUID] private (
 
   override def create(name: CategoryName): F[Unit] =
     sessionPool
-      .use { session =>
-        session.prepare(insertCategory).use { cmd =>
-          GenUUID[F].make[CategoryId].flatMap { uuid =>
-            cmd.execute(Category(uuid, name)).void
+      .use {
+        session =>
+          session.prepare(insertCategory).use {
+            cmd =>
+              GenUUID[F].make[CategoryId].flatMap {
+                uuid =>
+                  cmd.execute(Category(uuid, name)).void
+              }
           }
-        }
       }
 }
 
 private object CategoryQueries {
   val codec: Codec[Category] =
-    (uuid ~ varchar).imap { case (id ~ name) =>
-      Category(
-        CategoryId(id),
-        CategoryName(name)
-      )
+    (uuid ~ varchar).imap {
+      case (id ~ name) =>
+        Category(
+          CategoryId(id),
+          CategoryName(name)
+        )
     }(category => category.uuid.value ~ category.name.value)
 
   val selectAll: Query[Void, Category] =

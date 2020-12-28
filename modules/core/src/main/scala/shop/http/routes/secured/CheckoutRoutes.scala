@@ -21,8 +21,9 @@ final class CheckoutRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
 
   private[routes] val prefixPath = "/checkout"
 
-  private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of { case authReq @ POST -> Root as commonUser =>
-    authReq.req.decodeR[Card](handleCard(commonUser, _))
+  private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
+    case authReq @ POST -> Root as commonUser =>
+      authReq.req.decodeR[Card](handleCard(commonUser, _))
   }
 
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] = Router(

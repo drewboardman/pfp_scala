@@ -45,36 +45,44 @@ final class LiveOrders[F[_]: Sync] private (
   import OrderQueries._
 
   override def get(userId: UserId, orderId: OrderId): F[Option[Order]] =
-    sessionPool.use { sn =>
-      sn.prepare(selectByUserIdAndOrderId).use { qry =>
-        qry.option(userId ~ orderId)
-      }
+    sessionPool.use {
+      sn =>
+        sn.prepare(selectByUserIdAndOrderId).use {
+          qry =>
+            qry.option(userId ~ orderId)
+        }
     }
 
   override def findBy(userId: UserId): F[List[Order]] =
-    sessionPool.use { sn =>
-      sn.prepare(selectByUserId).use { qry =>
-        qry.stream(userId, 1024).compile.toList
-      }
+    sessionPool.use {
+      sn =>
+        sn.prepare(selectByUserId).use {
+          qry =>
+            qry.stream(userId, 1024).compile.toList
+        }
     }
 
   override def create(userId: UserId, paymentId: PaymentId, items: List[CartItem], total: Money): F[OrderId] =
-    sessionPool.use { sn =>
-      sn.prepare(insertOrder).use { cmd =>
-        GenUUID[F].make[OrderId].flatMap { orderId =>
-          val itMap = items.map(x => x.item.uuid -> x.quantity).toMap
-          val order = Order(orderId, paymentId, itMap, total)
-          cmd.execute(userId ~ order).as(orderId)
+    sessionPool.use {
+      sn =>
+        sn.prepare(insertOrder).use {
+          cmd =>
+            GenUUID[F].make[OrderId].flatMap {
+              orderId =>
+                val itMap = items.map(x => x.item.uuid -> x.quantity).toMap
+                val order = Order(orderId, paymentId, itMap, total)
+                cmd.execute(userId ~ order).as(orderId)
+            }
         }
-      }
     }
 }
 
 private object OrderQueries {
   val decoder: Decoder[Order] = (
     uuid.cimap[OrderId] ~ uuid ~ uuid.cimap[PaymentId] ~ jsonb[Map[ItemId, Quantity]] ~ numeric.map(USD.apply)
-  ).map { case orderId ~ _ ~ paymentId ~ items ~ total =>
-    Order(orderId, paymentId, items, total)
+  ).map {
+    case orderId ~ _ ~ paymentId ~ items ~ total =>
+      Order(orderId, paymentId, items, total)
   }
 
   // This additional input of userID is why we don't use a Codec
@@ -83,8 +91,9 @@ private object OrderQueries {
       uuid.cimap[UserId] ~
       uuid.cimap[PaymentId] ~
       jsonb[Map[ItemId, Quantity]] ~
-      numeric.contramap[Money](_.amount)).contramap { case userId ~ order =>
-      order.id ~ userId ~ order.pid ~ order.items ~ order.total
+      numeric.contramap[Money](_.amount)).contramap {
+      case userId ~ order =>
+        order.id ~ userId ~ order.pid ~ order.items ~ order.total
     }
 
   val insertOrder: Command[UserId ~ Order] =

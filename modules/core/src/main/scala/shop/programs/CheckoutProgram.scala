@@ -31,13 +31,14 @@ final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
     shoppingCart
       .get(userId)
       .ensure(EmptyCartError)(_.items.nonEmpty)
-      .flatMap { case CartTotal(items, total) =>
-        val payment = Payment(userId, total, card)
-        for {
-          paymentId <- paymentClient.process(payment)
-          orderId <- orders.create(userId, paymentId, items, total)
-          _ <- shoppingCart.delete(userId).attempt.void // attempt returns an Either. void discards it (not great)
-        } yield orderId
+      .flatMap {
+        case CartTotal(items, total) =>
+          val payment = Payment(userId, total, card)
+          for {
+            paymentId <- paymentClient.process(payment)
+            orderId <- orders.create(userId, paymentId, items, total)
+            _ <- shoppingCart.delete(userId).attempt.void // attempt returns an Either. void discards it (not great)
+          } yield orderId
       }
 
   def processPayment(payment: Payment): F[PaymentId] = {
@@ -47,9 +48,10 @@ final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
     )(paymentClient.process(payment))
 
     // turns the Throwable in to a PaymentError
-    action.adaptError { case e =>
-      // e.getMessage can be null. Option.apply changes that into a None
-      PaymentError(Option(e.getMessage).getOrElse("Unknown: e.getMessage returned null"))
+    action.adaptError {
+      case e =>
+        // e.getMessage can be null. Option.apply changes that into a None
+        PaymentError(Option(e.getMessage).getOrElse("Unknown: e.getMessage returned null"))
     }
   }
 
@@ -65,11 +67,13 @@ final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
     )(orders.create(userId, paymentId, items, total))
 
     def bgAction(fa: F[OrderId]): F[OrderId] =
-      fa.adaptError { case e =>
-        OrderError(e.getMessage)
-      }.onError { case _ =>
-        Logger[F].error(s"Failed to create order for: $paymentId") *>
-          Background[F].schedule(bgAction(fa), 1.hour) // wait an hour and then retry
+      fa.adaptError {
+        case e =>
+          OrderError(e.getMessage)
+      }.onError {
+        case _ =>
+          Logger[F].error(s"Failed to create order for: $paymentId") *>
+            Background[F].schedule(bgAction(fa), 1.hour) // wait an hour and then retry
       }
 
     bgAction(action)

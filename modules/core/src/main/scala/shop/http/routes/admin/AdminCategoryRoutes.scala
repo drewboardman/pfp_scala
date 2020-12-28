@@ -20,15 +20,18 @@ final class AdminCategoryRoutes[F[_]: Defer: JsonDecoder: MonadThrow](
   private[admin] val prefixPath = "/categories"
 
   private val httpRoutes: AuthedRoutes[AdminUser, F] =
-    AuthedRoutes.of { case authReq @ POST -> Root as _ =>
-      authReq.req.decodeR[CategoryParam] { cat =>
-        categories
-          .create(cat.toCategoryName)
-          .flatMap(Created(_))
-          .recoverWith { case CategoryAlreadyExists(category) =>
-            Conflict(category.name)
-          }
-      }
+    AuthedRoutes.of {
+      case authReq @ POST -> Root as _ =>
+        authReq.req.decodeR[CategoryParam] {
+          cat =>
+            categories
+              .create(cat.toCategoryName)
+              .flatMap(Created(_))
+              .recoverWith {
+                case CategoryAlreadyExists(category) =>
+                  Conflict(category.name)
+              }
+        }
     }
 
   def routes(authMiddleware: AuthMiddleware[F, AdminUser]): HttpRoutes[F] = Router(

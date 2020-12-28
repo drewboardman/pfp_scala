@@ -13,8 +13,9 @@ final class CategoryRoutes[F[_]: Defer: Monad](
 ) extends Http4sDsl[F] {
   private[routes] val prefixPath = "/categories"
 
-  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] { case GET -> Root =>
-    Ok(categories.findAll)
+  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
+    case GET -> Root =>
+      Ok(categories.findAll)
   }
 
   val routes: HttpRoutes[F] = Router(
