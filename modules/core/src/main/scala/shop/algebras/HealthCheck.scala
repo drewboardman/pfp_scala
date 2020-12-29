@@ -1,14 +1,12 @@
 package shop.algebras
 
 import cats.Parallel
-import cats.implicits._
-import cats.syntax._
-import cats.effect.{ Concurrent, Resource, Sync, Timer }
 import cats.effect.syntax.all._
+import cats.effect.{ Concurrent, Resource, Sync, Timer }
+import cats.implicits._
 import dev.profunktor.redis4cats.RedisCommands
 import shop.domain.HealthCheck.{ AppStatus, PostgresStatus, RedisStatus }
-import skunk.Session
-import skunk._
+import skunk.{ Session, _ }
 import skunk.codec.all._
 import skunk.implicits._
 
@@ -38,14 +36,14 @@ final class LiveHealthCheck[F[_]: Concurrent: Parallel: Timer](
     .map(_.nonEmpty)
     .timeout(1.second)
     .orElse(false.pure[F])
-    .map(RedisStatus)
+    .map(RedisStatus.apply)
 
   val postgresHealth: F[PostgresStatus] = sessionPool
     .use(_.execute(getPsqlHealth))
     .map(_.nonEmpty)
     .timeout(1.second)
     .orElse(false.pure[F])
-    .map(PostgresStatus)
+    .map(PostgresStatus.apply)
 
   // performs them both in parallel. F has Concurrent and Parallel instances
   override def status: F[AppStatus] = (redisHealth, postgresHealth).parMapN(AppStatus)
