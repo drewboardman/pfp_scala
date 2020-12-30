@@ -51,7 +51,7 @@ final class CheckoutSpec extends PureTestSuite {
         )
           .checkout(uid, card)
           .map { orderId =>
-            assert(orderId == oid)
+            assert(orderId === oid)
           }
       }
     }

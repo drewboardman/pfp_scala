@@ -15,6 +15,8 @@ trait LowPriorityCatsConstraints extends TripleEquals {
     new AToBEquivalenceConstraint[A, B](new CatsEquivalence(ev1), ev2)
 }
 
+/** This also requires the package object `domain` to give instances of Equality for newtypes.
+  */
 trait CatsEquality extends LowPriorityCatsConstraints {
   override def convertToEqualizer[T](left: T): Equalizer[T]                                   = super.convertToEqualizer[T](left)
   implicit override def convertToCheckingEqualizer[T](left: T): CheckingEqualizer[T]          = new CheckingEqualizer(left)
