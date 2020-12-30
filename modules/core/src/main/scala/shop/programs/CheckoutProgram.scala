@@ -4,7 +4,6 @@ import cats.effect.Timer
 import cats.syntax.all._
 import io.chrisdavenport.log4cats.Logger
 import retry.RetryDetails.{ GivingUp, WillDelayAndRetry }
-import retry.RetryPolicies._
 import retry.{ retryingOnAllErrors, RetryDetails, RetryPolicy }
 import shop.algebras.{ Orders, ShoppingCart }
 import shop.domain.Auth.UserId
@@ -22,10 +21,11 @@ import scala.concurrent.duration._
 final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
     paymentClient: PaymentClient[F],
     shoppingCart: ShoppingCart[F],
-    orders: Orders[F]
+    orders: Orders[F],
+    retryPolicy: RetryPolicy[F]
 ) {
-  private val retryPolicy: RetryPolicy[F] = // move this somewhere it can be used more generally
-    limitRetries[F](3) |+| exponentialBackoff[F](10.milliseconds)
+//  private val retryPolicy: RetryPolicy[F] = // move this somewhere it can be used more generally
+//    limitRetries[F](3) |+| exponentialBackoff[F](10.milliseconds)
 
   def checkout(userId: UserId, card: Card): F[OrderId] =
     shoppingCart
