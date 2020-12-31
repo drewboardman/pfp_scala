@@ -35,7 +35,7 @@ final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
         case CartTotal(items, total) =>
           val payment = Payment(userId, total, card)
           for {
-            paymentId <- paymentClient.process(payment)
+            paymentId <- processPayment(payment)
             orderId <- orders.create(userId, paymentId, items, total)
             _ <- shoppingCart.delete(userId).attempt.void // attempt returns an Either. void discards it (not great)
           } yield orderId
@@ -83,10 +83,12 @@ final class CheckoutProgram[F[_]: MonadThrow: Logger: Timer: Background](
   def logError(thingThatFailed: String)(e: Throwable, details: RetryDetails): F[Unit] =
     details match {
       case r: WillDelayAndRetry =>
-        Logger[F].error(s"Failed on $thingThatFailed with ${e.getMessage}. We retried ${r.retriesSoFar} times.")
+        Logger[F].error(
+          s"Failed on $thingThatFailed with error message: '${e.getMessage}'. We retried ${r.retriesSoFar} times."
+        )
       case g: GivingUp          =>
         Logger[F].error(
-          s"Giving up on $thingThatFailed with ${e.getMessage}. We retried a total of ${g.totalRetries} times."
+          s"Giving up on $thingThatFailed with error message: '${e.getMessage}'. We retried a total of ${g.totalRetries} times."
         )
     }
 }

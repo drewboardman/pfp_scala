@@ -1,6 +1,8 @@
 package shop.programs
 
 import cats.effect.IO
+import cats.effect.concurrent.Ref
+import io.chrisdavenport.log4cats.Logger
 import retry.RetryPolicies.limitRetries
 import retry.RetryPolicy
 import shop.algebras.{ Orders, ShoppingCart }
@@ -8,8 +10,8 @@ import shop.arbitrary._
 import shop.domain.Auth.UserId
 import shop.domain.CardModels.Card
 import shop.domain.Item.ItemId
-import shop.domain.Orders.{ EmptyCartError, Order, OrderId, PaymentId }
-import shop.domain.Payment
+import shop.domain.Orders._
+import shop.domain.Payment.Payment
 import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal, Quantity }
 import shop.effects.Background
 import shop.http.clients.PaymentClient
@@ -22,12 +24,17 @@ final class CheckoutSpec extends PureTestSuite {
 
   def successPaymentClient(pid: PaymentId): PaymentClient[IO] =
     new PaymentClient[IO] {
-      override def process(payment: Payment.Payment): IO[PaymentId] = IO.pure(pid)
+      override def process(payment: Payment): IO[PaymentId] = IO.pure(pid)
     }
 
   def emptyShoppingCart: TestCart =
     new TestCart {
       override def get(userId: UserId): IO[CartTotal] = IO.pure(CartTotal(List.empty, USD(0)))
+    }
+
+  val unreachablePaymentClient: PaymentClient[IO] =
+    new PaymentClient[IO] {
+      override def process(payment: Payment): IO[PaymentId] = IO.raiseError(PaymentError("fake test error"))
     }
 
   def successfulShoppingCart(cartTotal: CartTotal): ShoppingCart[IO] =
@@ -80,6 +87,35 @@ final class CheckoutSpec extends PureTestSuite {
             case _                    =>
               fail("Cart was expected to be empty, but was not.")
           }
+      }
+    }
+  }
+
+  test("unreachable payment client") {
+    forAll { (uid: UserId, oid: OrderId, card: Card, ct: CartTotal) =>
+      IOAssertion {
+        Ref.of[IO, List[String]](List.empty).flatMap { logs =>
+          implicit val bg: Background[IO] = shop.background.NoOp
+          implicit val logger: Logger[IO] = shop.logger.acc(logs)
+          new CheckoutProgram[IO](
+            unreachablePaymentClient,
+            successfulShoppingCart(ct),
+            successfulOrders(oid),
+            retryPolicy
+          ).checkout(uid, card)
+            .attempt
+            .flatMap {
+              case Left(PaymentError(_)) =>
+                logs.get.map {
+                  case (x :: xs) =>
+                    assert(x.contains("Giving up") && xs.size === MaxRetries)
+                  case _         =>
+                    fail(s"Expected $MaxRetries retries.")
+                }
+              case _                     =>
+                fail("Expected a payment error.")
+            }
+        }
       }
     }
   }
