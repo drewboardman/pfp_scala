@@ -3,7 +3,7 @@ package shop
 import io.estatico.newtype.Coercible
 import org.scalacheck.Arbitrary
 import shop.domain.CardModels.Card
-import shop.domain.ShoppingCart
+import shop.domain.{ Brand, ShoppingCart }
 import shop.generators._
 
 import java.util.UUID
@@ -15,4 +15,6 @@ object arbitrary {
     Arbitrary(cartTotalGen)
 
   implicit val arbCard: Arbitrary[Card] = Arbitrary(cardGen)
+
+  implicit val arbBrand: Arbitrary[Brand.Brand] = Arbitrary(brandGen)
 }
