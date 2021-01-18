@@ -26,4 +26,17 @@ trait HttpTestSuite extends PureTestSuite {
         }
       case None           => fail("route not found")
     }
+
+  def assertHttpStatus(routes: HttpRoutes[IO], req: Request[IO])(expectedStatus: Status): IO[Assertion] =
+    routes.run(req).value.map {
+      case Some(resp) =>
+        assert(resp.status === expectedStatus)
+      case None       => fail("route not found")
+    }
+
+  def assertHttpFailure(routes: HttpRoutes[IO], req: Request[IO]): IO[Assertion] =
+    routes.run(req).value.attempt.map {
+      case Left(_)  => assert(true)
+      case Right(_) => fail("expected a failure")
+    }
 }

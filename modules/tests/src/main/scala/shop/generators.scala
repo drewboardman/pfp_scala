@@ -18,7 +18,7 @@ import shop.domain.CardModels.{
 }
 import shop.domain.Category.{ Category, CategoryId, CategoryName }
 import shop.domain.Item.{ Item, ItemDescription, ItemId, ItemName }
-import shop.domain.ShoppingCart.{ CartItem, CartTotal, Quantity }
+import shop.domain.ShoppingCart.{ Cart, CartItem, CartTotal, Quantity }
 import squants.market.{ Money, USD }
 
 import java.util.UUID
@@ -69,6 +69,11 @@ object generators {
     category = c
   )
 
+  val itemMapGen: Gen[(ItemId, Quantity)] = for {
+    i <- coerceGenUuid[ItemId]
+    q <- coerceGenInt[Quantity]
+  } yield i -> q
+
   val cartItemGen: Gen[CartItem] =
     for {
       itm <- itemGen
@@ -79,6 +84,8 @@ object generators {
     cartItems <- Gen.nonEmptyListOf(cartItemGen)
     ttl <- genMoney
   } yield CartTotal(cartItems, ttl)
+
+  val cartGen: Gen[Cart] = Gen.nonEmptyMap(itemMapGen).map(Cart.apply)
 
   val cardGen: Gen[Card] = for {
     n <- genNonEmptyString.map[CardNamePred](Refined.unsafeApply)
