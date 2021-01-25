@@ -44,6 +44,7 @@ private[http] trait JsonCodecs {
   // These exist because we're using the newtype library
   implicit def coercibleDecoder[A: Coercible[B, *], B: Decoder]: Decoder[A] = Decoder[B].map(_.coerce[A])
 
+  // This breaks in newtype 0.4.4 BTW. We'll need to figure that out.
   implicit def coercibleEncoder[A: Coercible[B, *], B: Encoder]: Encoder[A] =
     Encoder[B].contramap(_.repr.asInstanceOf[B]) // this casting is bc the Scala compiler can't infer the type of repr
 
