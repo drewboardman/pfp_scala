@@ -18,8 +18,7 @@ class BrandRoutesSpec extends HttpTestSuite {
 
   def failBrands(brands: List[Brand]): TestBrands =
     new TestBrands {
-      override def findAll: IO[List[Brand]] =
-        IO.raiseError(DummyError) *> IO.pure(brands)
+      override def findAll: IO[List[Brand]] = IO.raiseError(DummyError) *> IO.pure(brands)
     }
 
   test("GET brands [OK]") {
@@ -33,7 +32,7 @@ class BrandRoutesSpec extends HttpTestSuite {
   }
 
   test("GET brands [ERROR]") {
-    forAll{ (brands: List[Brand]) =>
+    forAll { (brands: List[Brand]) =>
       IOAssertion {
         val routes  = new BrandRoutes[IO](failBrands(brands)).routes
         val request = Request[IO](GET, uri"/brands")
