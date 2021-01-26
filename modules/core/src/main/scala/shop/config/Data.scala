@@ -10,4 +10,7 @@ object Data {
   @newtype case class PasswordSalt(value: Secret[NonEmptyString])
   @newtype case class ShoppingCartExpiration(value: FiniteDuration)
   @newtype case class TokenExpiration(value: FiniteDuration)
+  @newtype case class AdminUserTokenConfig(value: Secret[NonEmptyString])
+  @newtype case class JwtSecretKeyConfig(value: Secret[NonEmptyString])
+  @newtype case class JwtClaimConfig(value: Secret[NonEmptyString])
 }
