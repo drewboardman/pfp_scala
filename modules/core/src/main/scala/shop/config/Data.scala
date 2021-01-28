@@ -1,7 +1,7 @@
 package shop.config
 
 import ciris.Secret
-import eu.timepit.refined.types.all.{PosInt, UserPortNumber}
+import eu.timepit.refined.types.all.{ PosInt, UserPortNumber }
 import eu.timepit.refined.types.string.NonEmptyString
 import io.estatico.newtype.macros.newtype
 
@@ -20,45 +20,45 @@ object Data {
   @newtype case class RedisConfig(uri: RedisURI)
 
   case class AppConfig(
-    adminJwtConfig: AdminJwtConfig,
-    tokenConfig: JwtSecretKeyConfig,
-    passwordSalt: PasswordSalt,
-    tokenExpiration: TokenExpiration,
-    cartExpiration: ShoppingCartExpiration,
-    checkoutConfig: CheckoutConfig,
-    paymentConfig: PaymentConfig,
-    httpClientConfig: HttpClientConfig,
-    httpServerConfig: HttpServerConfig,
-    redis: RedisConfig,
-    postgreSQL: PostgreSQLConfig
+      adminJwtConfig: AdminJwtConfig,
+      tokenConfig: JwtSecretKeyConfig,
+      passwordSalt: PasswordSalt,
+      tokenExpiration: TokenExpiration,
+      cartExpiration: ShoppingCartExpiration,
+      checkoutConfig: CheckoutConfig,
+      paymentConfig: PaymentConfig,
+      httpClientConfig: HttpClientConfig,
+      httpServerConfig: HttpServerConfig,
+      redis: RedisConfig,
+      postgreSQL: PostgreSQLConfig
   )
 
   case class PostgreSQLConfig(
-    host: NonEmptyString,
-    port: UserPortNumber,
-    user: NonEmptyString,
-    database: NonEmptyString,
-    max: PosInt
+      host: NonEmptyString,
+      port: UserPortNumber,
+      user: NonEmptyString,
+      database: NonEmptyString,
+      max: PosInt
   )
 
   case class HttpClientConfig(
-    connectTimeout: FiniteDuration,
-    requestTimeout: FiniteDuration
+      connectTimeout: FiniteDuration,
+      requestTimeout: FiniteDuration
   )
 
   case class HttpServerConfig(
-    host: NonEmptyString,
-    port: UserPortNumber
+      host: NonEmptyString,
+      port: UserPortNumber
   )
 
   case class CheckoutConfig(
-    retriesLimit: PosInt,
-    retriesBackoff: FiniteDuration
+      retriesLimit: PosInt,
+      retriesBackoff: FiniteDuration
   )
 
   case class AdminJwtConfig(
-    secretKeyConfig: JwtSecretKeyConfig,
-    claimStr: JwtClaimConfig,
-    adminToken: AdminUserTokenConfig,
+      secretKeyConfig: JwtSecretKeyConfig,
+      claimStr: JwtClaimConfig,
+      adminToken: AdminUserTokenConfig
   )
 }

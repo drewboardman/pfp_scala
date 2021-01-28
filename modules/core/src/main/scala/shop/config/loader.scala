@@ -11,7 +11,7 @@ import eu.timepit.refined.types.string.NonEmptyString
 import scala.concurrent.duration._
 import shop.config.Data._
 import shop.config.environments.AppEnvironment
-import shop.config.environments.AppEnvironment.{Prod, Test}
+import shop.config.environments.AppEnvironment.{ Prod, Test }
 
 object loader {
   def apply[F[_]: Async: ContextShift]: F[AppConfig] =
@@ -27,19 +27,20 @@ object loader {
           default(
             redisURI = RedisURI("redis://10.123.154.176"),
             paymentURI = PaymentURI("https://payments.net/api")
-            )
-      }.load[F]
+          )
+      }
+      .load[F]
 
   private def default(
-    redisURI: RedisURI,
-    paymentURI: PaymentURI
+      redisURI: RedisURI,
+      paymentURI: PaymentURI
   ): ConfigValue[AppConfig] =
     (
       env("SC_JWT_SECRET_KEY").as[NonEmptyString].secret,
       env("SC_JWT_CLAIM").as[NonEmptyString].secret,
       env("SC_ACCESS_TOKEN_SECRET_KEY").as[NonEmptyString].secret,
       env("SC_ADMIN_USER_TOKEN").as[NonEmptyString].secret,
-      env("SC_PASSWORD_SALT").as[NonEmptyString].secret,
+      env("SC_PASSWORD_SALT").as[NonEmptyString].secret
     ).parMapN { (secretKey, claimStr, tokenKey, adminToken, salt) =>
       AppConfig(
         AdminJwtConfig(
@@ -54,16 +55,16 @@ object loader {
         CheckoutConfig(
           retriesLimit = 3,
           retriesBackoff = 10.milliseconds
-          ),
+        ),
         PaymentConfig(paymentURI),
         HttpClientConfig(
           connectTimeout = 2.seconds,
           requestTimeout = 2.seconds
-          ),
+        ),
         HttpServerConfig(
           host = "0.0.0.0",
           port = 8080
-          ),
+        ),
         RedisConfig(redisURI),
         PostgreSQLConfig(
           host = "localhost",
@@ -71,7 +72,7 @@ object loader {
           user = "postgres",
           database = "store",
           max = 10
-          )
+        )
       )
     }
 }

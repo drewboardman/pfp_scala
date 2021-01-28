@@ -6,6 +6,7 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.client._
 import org.http4s.client.dsl.Http4sClientDsl
+import shop.config.Data.PaymentConfig
 import shop.domain.Orders.{ PaymentError, PaymentId }
 import shop.domain.Payment.Payment
 import shop.effects.CommonEffects.BracketThrow
@@ -16,15 +17,14 @@ trait PaymentClient[F[_]] {
 }
 
 final class LivePaymentClient[F[_]: JsonDecoder: BracketThrow](
+    cfg: PaymentConfig,
     client: Client[F]
 ) extends PaymentClient[F]
     with Http4sClientDsl[F] {
 
-  private val baseUri = "http://localhost:8080/api/v1"
-
   def process(payment: Payment): F[PaymentId] =
     Uri
-      .fromString(baseUri + "/payments")
+      .fromString(cfg.uri.value.value + "/payments")
       .liftTo[F]
       .flatMap { uri =>
         POST(payment, uri)
