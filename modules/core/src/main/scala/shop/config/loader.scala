@@ -14,6 +14,7 @@ import shop.config.environments.AppEnvironment
 import shop.config.environments.AppEnvironment.{ Prod, Test }
 
 object loader {
+  // this allows you to call `config.loader`
   def apply[F[_]: Async: ContextShift]: F[AppConfig] =
     env("SC_APP_ENV")
       .as[AppEnvironment]
