@@ -6,6 +6,10 @@ project/target/
 target/
 build/
 
+#nested
+/modules/core/project/project/
+/modules/core/project/target/
+
 # eclipse
 build
 .classpath
