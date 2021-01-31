@@ -20,7 +20,6 @@ import shop.domain.Category._
 import shop.domain.Item.{CreateItem, Item, ItemId, UpdateItem}
 import shop.domain.ShoppingCart.{Cart, Quantity}
 import shop.logger.NoOp
-import shop.domain._
 import shop.effects.GenUUID
 import shop.http.auth.Users.{User, UserJwtAuth}
 import suite.{IOAssertion, ResourceSuite}
