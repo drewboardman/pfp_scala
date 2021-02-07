@@ -23,6 +23,7 @@ lazy val tests = (project in file("modules/tests"))
     libraryDependencies ++= Seq(
       compilerPlugin(Libraries.kindProjector cross CrossVersion.full),
       compilerPlugin(Libraries.betterMonadicFor),
+      compilerPlugin(Libraries.contextApplied),
       Libraries.scalaCheck,
       Libraries.scalaTest,
       Libraries.scalaTestPlus
@@ -47,10 +48,13 @@ lazy val core = (project in file("modules/core"))
     libraryDependencies ++= Seq(
       compilerPlugin(Libraries.kindProjector cross CrossVersion.full),
       compilerPlugin(Libraries.betterMonadicFor),
+      compilerPlugin(Libraries.contextApplied),
       Libraries.cats,
       Libraries.catsEffect,
       Libraries.catsMeowMtl,
+      Libraries.catsMeowMtlEffects,
       Libraries.catsRetry,
+      Libraries.console4cats,
       Libraries.circeCore,
       Libraries.circeGeneric,
       Libraries.circeParser,

@@ -2,9 +2,13 @@ package shop.effects
 
 import cats.{ ApplicativeError, MonadError }
 import cats.effect.Bracket
+import cats.mtl.ApplicativeAsk
+import shop.config.Data.{ AppConfig, ResourcesConfig }
 
 object CommonEffects {
-  type BracketThrow[F[_]] = Bracket[F, Throwable]
+  type HasAppConfig[F[_]]       = ApplicativeAsk[F, AppConfig]
+  type HasResourcesConfig[F[_]] = ApplicativeAsk[F, ResourcesConfig]
+  type BracketThrow[F[_]]       = Bracket[F, Throwable]
 
   object BracketThrow {
     def apply[F[_]](implicit ev: Bracket[F, Throwable]): BracketThrow[F] = ev

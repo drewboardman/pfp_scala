@@ -27,8 +27,12 @@ object Data {
       cartExpiration: ShoppingCartExpiration,
       checkoutConfig: CheckoutConfig,
       paymentConfig: PaymentConfig,
-      httpClientConfig: HttpClientConfig,
       httpServerConfig: HttpServerConfig,
+      resourcesConfig: ResourcesConfig
+  )
+
+  case class ResourcesConfig(
+      httpClientConfig: HttpClientConfig,
       redis: RedisConfig,
       postgreSQL: PostgreSQLConfig
   )

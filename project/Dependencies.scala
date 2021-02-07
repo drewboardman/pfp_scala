@@ -7,6 +7,7 @@ object Dependencies {
     val catsEffect    = "2.2.0"
     val catsMeowMtl   = "0.4.1"
     val catsRetry     = "2.0.0"
+    val console4cats  = "0.8.1"
     val circe         = "0.13.0"
     val ciris         = "1.2.1"
     val javaxCrypto   = "1.0.1"
@@ -22,6 +23,7 @@ object Dependencies {
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.11.0"
+    val contextApplied   = "0.1.4"
     val logback          = "1.2.3"
 
     val scalaCheck    = "1.15.1"
@@ -36,8 +38,10 @@ object Dependencies {
 
     val cats        = "org.typelevel"    %% "cats-core"     % Versions.cats
     val catsMeowMtl = "com.olegpy"       %% "meow-mtl-core" % Versions.catsMeowMtl
+    val catsMeowMtlEffects = "com.olegpy"       %% "meow-mtl-effects" % Versions.catsMeowMtl
     val catsEffect  = "org.typelevel"    %% "cats-effect"   % Versions.catsEffect
     val catsRetry   = "com.github.cb372" %% "cats-retry"    % Versions.catsRetry
+    val console4cats = "dev.profunktor" %% "console4cats"    % Versions.console4cats
     val squants     = "org.typelevel"    %% "squants"       % Versions.squants
     val fs2         = "co.fs2"           %% "fs2-core"      % Versions.fs2
 
@@ -74,6 +78,7 @@ object Dependencies {
     // Compiler plugins
     val betterMonadicFor = "com.olegpy"    %% "better-monadic-for" % Versions.betterMonadicFor
     val kindProjector    = "org.typelevel" % "kind-projector"      % Versions.kindProjector
+    val contextApplied   = "org.augustjune" %% "context-applied" % Versions.contextApplied
 
     // Runtime
     val logback = "ch.qos.logback" % "logback-classic" % Versions.logback
